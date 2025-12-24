@@ -1,0 +1,78 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations - Optimize database for MySQL
+     */
+    public function up(): void
+    {
+        // Ensure MySQL specific optimizations
+        Schema::table('sach', function (Blueprint $table) {
+            // Add MySQL specific indexes for better performance
+            $table->index(['trang_thai', 'so_luong_ton'], 'idx_sach_status_stock');
+            $table->index(['ma_the_loai', 'trang_thai'], 'idx_sach_category_status');
+            $table->index(['ma_tac_gia', 'trang_thai'], 'idx_sach_author_status');
+            $table->index(['gia_ban', 'trang_thai'], 'idx_sach_price_status');
+            $table->index(['created_at'], 'idx_sach_created');
+            $table->fullText(['ten_sach', 'mo_ta'], 'idx_sach_fulltext');
+        });
+
+        Schema::table('don_hang', function (Blueprint $table) {
+            $table->index(['ma_nguoi_dung', 'trang_thai'], 'idx_donhang_user_status');
+            $table->index(['ngay_dat_hang'], 'idx_donhang_date');
+            $table->index(['trang_thai'], 'idx_donhang_status');
+        });
+
+        Schema::table('gio_hang', function (Blueprint $table) {
+            $table->index(['ma_nguoi_dung', 'ma_sach'], 'idx_giohang_user_book');
+        });
+
+        Schema::table('yeu_thich', function (Blueprint $table) {
+            $table->index(['ma_nguoi_dung', 'ma_sach'], 'idx_yeuthich_user_book');
+        });
+
+        Schema::table('danh_gia', function (Blueprint $table) {
+            $table->index(['ma_sach', 'trang_thai'], 'idx_danhgia_book_status');
+            $table->index(['ma_nguoi_dung'], 'idx_danhgia_user');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('sach', function (Blueprint $table) {
+            $table->dropIndex('idx_sach_status_stock');
+            $table->dropIndex('idx_sach_category_status');
+            $table->dropIndex('idx_sach_author_status');
+            $table->dropIndex('idx_sach_price_status');
+            $table->dropIndex('idx_sach_created');
+            $table->dropIndex('idx_sach_fulltext');
+        });
+
+        Schema::table('don_hang', function (Blueprint $table) {
+            $table->dropIndex('idx_donhang_user_status');
+            $table->dropIndex('idx_donhang_date');
+            $table->dropIndex('idx_donhang_status');
+        });
+
+        Schema::table('gio_hang', function (Blueprint $table) {
+            $table->dropIndex('idx_giohang_user_book');
+        });
+
+        Schema::table('yeu_thich', function (Blueprint $table) {
+            $table->dropIndex('idx_yeuthich_user_book');
+        });
+
+        Schema::table('danh_gia', function (Blueprint $table) {
+            $table->dropIndex('idx_danhgia_book_status');
+            $table->dropIndex('idx_danhgia_user');
+        });
+    }
+};

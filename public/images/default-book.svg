@@ -1,0 +1,7 @@
+<svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="300" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
+  <rect x="20" y="40" width="160" height="220" fill="#e9ecef" rx="5"/>
+  <text x="100" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#6c757d">📚</text>
+  <text x="100" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#6c757d">Sách mẫu</text>
+  <text x="100" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#adb5bd">Hình ảnh mặc định</text>
+</svg>
