@@ -1,214 +1,338 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Quên mật khẩu - BookStore</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-@section('title', $title)
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            padding: 2rem;
+        }
 
-@section('content')
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-5 col-md-7">
-            <div class="card card-modern shadow-lg">
-                <div class="card-body p-5">
-                    <!-- Logo -->
-                    <div class="text-center mb-4">
-                        <div class="auth-logo mb-3">
-                            <i class="fas fa-key text-warning" style="font-size: 3rem;"></i>
-                        </div>
-                        <h2 class="fw-bold text-warning mb-2">Quên mật khẩu?</h2>
-                        <p class="text-muted">Nhập email để nhận hướng dẫn đặt lại mật khẩu</p>
-                    </div>
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-                    <!-- Forgot Password Form -->
-                    <form method="POST" action="{{ route('forgot-password') }}" id="forgotPasswordForm">
-                        @csrf
-                        
-                        <!-- Email -->
-                        <div class="mb-4">
-                            <label for="email" class="form-label">
-                                <i class="fas fa-envelope me-2"></i>Email đã đăng ký
-                            </label>
-                            <input type="email" 
-                                   class="form-control form-control-lg @error('email') is-invalid @enderror" 
-                                   id="email" 
-                                   name="email" 
-                                   value="{{ old('email') }}" 
-                                   placeholder="Nhập email của bạn"
-                                   required 
-                                   autofocus>
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="form-text">
-                                <small class="text-muted">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Chúng tôi sẽ gửi link đặt lại mật khẩu đến email này
-                                </small>
-                            </div>
-                        </div>
+        .forgot-container {
+            width: 100%;
+            max-width: 450px;
+        }
 
-                        <!-- Submit Button -->
-                        <div class="d-grid mb-4">
-                            <button type="submit" class="btn btn-warning btn-lg" id="submitBtn">
-                                <i class="fas fa-paper-plane me-2"></i>
-                                Gửi hướng dẫn
-                            </button>
-                        </div>
+        .forgot-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
 
-                        <!-- Back to Login -->
-                        <div class="text-center">
-                            <p class="mb-0">
-                                <a href="{{ route('login') }}" class="text-decoration-none">
-                                    <i class="fas fa-arrow-left me-2"></i>
-                                    Quay lại đăng nhập
-                                </a>
-                            </p>
-                        </div>
-                    </form>
-                </div>
+        .card-header {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+
+        .header-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: shake 2s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            75% { transform: rotate(-10deg); }
+        }
+
+        .card-header h1 {
+            font-size: 1.75rem;
+            color: #92400e;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-header p {
+            color: #a16207;
+            font-size: 0.95rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #f59e0b;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+        }
+
+        .form-hint {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-link {
+            text-align: center;
+        }
+
+        .back-link a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .back-link a:hover {
+            color: #f59e0b;
+        }
+
+        .help-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .help-card h3 {
+            font-size: 1rem;
+            color: #374151;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .help-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .help-item a {
+            color: #f59e0b;
+            text-decoration: none;
+        }
+
+        .help-item a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .alert-danger {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        .quick-links {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .quick-links a {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .quick-links a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+
+            .card-header {
+                padding: 2rem 1.5rem;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+
+            .header-icon {
+                font-size: 3rem;
+            }
+
+            .card-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="forgot-container">
+        <div class="forgot-card">
+            <div class="card-header">
+                <div class="header-icon">🔑</div>
+                <h1>Quên mật khẩu?</h1>
+                <p>Đừng lo, chúng tôi sẽ giúp bạn!</p>
             </div>
 
-            <!-- Help Section -->
-            <div class="card card-modern mt-4">
-                <div class="card-body p-4">
-                    <h6 class="fw-semibold mb-3">
-                        <i class="fas fa-question-circle me-2"></i>
-                        Cần hỗ trợ?
-                    </h6>
-                    <div class="row">
-                        <div class="col-12 mb-2">
-                            <small class="text-muted">
-                                <i class="fas fa-clock me-2"></i>
-                                Không nhận được email? Kiểm tra thư mục spam hoặc chờ 5-10 phút
-                            </small>
-                        </div>
-                        <div class="col-12 mb-2">
-                            <small class="text-muted">
-                                <i class="fas fa-envelope me-2"></i>
-                                Email hỗ trợ: <a href="mailto:support@bookstore.com">support@bookstore.com</a>
-                            </small>
-                        </div>
-                        <div class="col-12">
-                            <small class="text-muted">
-                                <i class="fas fa-phone me-2"></i>
-                                Hotline: <a href="tel:1900-1234">1900-1234</a>
-                            </small>
+            <div class="card-body">
+                @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+                @endif
+
+                @if(session('success') || session('tb_success'))
+                <div class="alert alert-success">{{ session('success') ?? session('tb_success') }}</div>
+                @endif
+
+                @if($errors->any())
+                <div class="alert alert-danger">
+                    @foreach($errors->all() as $error)
+                        <div>{{ $error }}</div>
+                    @endforeach
+                </div>
+                @endif
+
+                <form method="POST" action="{{ route('forgot-password') }}" id="forgotForm">
+                    @csrf
+                    
+                    <div class="form-group">
+                        <label class="form-label">📧 Email đã đăng ký</label>
+                        <input type="email" 
+                               name="email" 
+                               class="form-input" 
+                               value="{{ old('email') }}"
+                               placeholder="Nhập email của bạn"
+                               required 
+                               autofocus>
+                        <div class="form-hint">
+                            ℹ️ Chúng tôi sẽ gửi link đặt lại mật khẩu đến email này
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Quick Access -->
-            <div class="text-center mt-4">
-                <p class="text-muted mb-2">Hoặc:</p>
-                <div class="btn-group">
-                    <a href="{{ route('register') }}" class="btn btn-outline-success btn-sm">
-                        <i class="fas fa-user-plus me-1"></i>Tạo tài khoản mới
-                    </a>
-                    <a href="{{ route('home') }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-home me-1"></i>Về trang chủ
-                    </a>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        📨 Gửi hướng dẫn
+                    </button>
+                </form>
+
+                <div class="back-link">
+                    <a href="{{ route('login') }}">← Quay lại đăng nhập</a>
                 </div>
             </div>
         </div>
+
+        <div class="help-card">
+            <h3>❓ Cần hỗ trợ?</h3>
+            <div class="help-item">
+                ⏰ Không nhận được email? Kiểm tra thư mục spam
+            </div>
+            <div class="help-item">
+                📧 Email: <a href="mailto:support@bookstore.vn">support@bookstore.vn</a>
+            </div>
+            <div class="help-item">
+                📞 Hotline: <a href="tel:0787905089">0787 905 089</a>
+            </div>
+        </div>
+
+        <div class="quick-links">
+            <a href="{{ route('register') }}">📝 Tạo tài khoản mới</a>
+            <a href="{{ route('home') }}">🏠 Về trang chủ</a>
+        </div>
     </div>
-</div>
-@endsection
 
-@push('styles')
-<style>
-    .auth-logo {
-        animation: swing 2s ease-in-out infinite;
-    }
-    
-    @keyframes swing {
-        0%, 100% {
-            transform: rotate(0deg);
-        }
-        20% {
-            transform: rotate(15deg);
-        }
-        40% {
-            transform: rotate(-10deg);
-        }
-        60% {
-            transform: rotate(5deg);
-        }
-        80% {
-            transform: rotate(-5deg);
-        }
-    }
-    
-    .card-modern {
-        border: none;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-    }
-    
-    .form-control-lg {
-        border-radius: 12px;
-        padding: 0.75rem 1rem;
-    }
-    
-    .btn-lg {
-        border-radius: 12px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-    }
-    
-    body {
-        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-        min-height: 100vh;
-    }
-    
-    .btn-warning {
-        color: #000;
-    }
-    
-    .btn-warning:hover {
-        color: #000;
-        background-color: #fbbf24;
-        border-color: #fbbf24;
-    }
-</style>
-@endpush
-
-@push('scripts')
-<script>
-    // Form submission with loading state
-    document.getElementById('forgotPasswordForm').addEventListener('submit', function() {
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang gửi...';
-    });
-
-    // Email validation
-    document.getElementById('email').addEventListener('blur', function() {
-        const email = this.value;
-        if (email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                this.setCustomValidity('Email không hợp lệ');
-                this.classList.add('is-invalid');
-            } else {
-                this.setCustomValidity('');
-                this.classList.remove('is-invalid');
-            }
-        }
-    });
-
-    // Auto-focus on email field
-    document.addEventListener('DOMContentLoaded', function() {
-        const emailInput = document.getElementById('email');
-        if (emailInput) {
-            emailInput.focus();
-        }
-    });
-
-    // Show success message after form submission
-    @if(session('tb_success'))
-        setTimeout(function() {
-            showToast('{{ session('tb_success') }}', 'success');
-        }, 500);
-    @endif
-</script>
-@endpush
+    <script>
+        document.getElementById('forgotForm').addEventListener('submit', function() {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Đang gửi...';
+        });
+    </script>
+</body>
+</html>

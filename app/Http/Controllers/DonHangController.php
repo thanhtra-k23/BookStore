@@ -6,8 +6,12 @@ use App\Models\DonHang;
 use App\Models\ChiTietDonHang;
 use App\Models\NguoiDung;
 use App\Models\MaGiamGia;
+use App\Mail\OrderConfirmation;
+use App\Mail\OrderStatusChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class DonHangController extends Controller
 {
@@ -16,9 +20,126 @@ class DonHangController extends Controller
      */
     public function userOrders()
     {
-        // For now, redirect to home with message since auth is not implemented
-        return redirect()->route('home')
-            ->with('tb_info', 'Chức năng đơn hàng đang được phát triển');
+        $user = \Illuminate\Support\Facades\Auth::user();
+        
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('tb_info', 'Vui lòng đăng nhập để xem đơn hàng');
+        }
+
+        $orders = DonHang::where('nguoi_dung_id', $user->id)
+            ->with(['chiTiet.sach'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        $title = 'Đơn hàng của tôi - BookStore';
+
+        return view('account.orders', compact('orders', 'title'));
+    }
+
+    /**
+     * Show single order for user
+     */
+    public function showUserOrder($id)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $order = DonHang::where('id', $id)
+            ->where('nguoi_dung_id', $user->id)
+            ->with(['chiTiet.sach', 'maGiamGia'])
+            ->firstOrFail();
+
+        $title = 'Chi tiết đơn hàng #' . $order->ma_don;
+
+        return view('account.order-detail', compact('order', 'title'));
+    }
+
+    /**
+     * Track order status
+     */
+    public function trackOrder($id)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $order = DonHang::where('id', $id)
+            ->where('nguoi_dung_id', $user->id)
+            ->with(['chiTiet.sach'])
+            ->firstOrFail();
+
+        $title = 'Theo dõi đơn hàng #' . $order->ma_don;
+
+        // Define order timeline
+        $timeline = [
+            ['status' => 'cho_xac_nhan', 'label' => 'Đặt hàng', 'icon' => '📝', 'date' => $order->created_at],
+            ['status' => 'da_xac_nhan', 'label' => 'Xác nhận', 'icon' => '✅', 'date' => null],
+            ['status' => 'dang_giao', 'label' => 'Đang giao', 'icon' => '🚚', 'date' => null],
+            ['status' => 'da_giao', 'label' => 'Hoàn thành', 'icon' => '🎉', 'date' => null],
+        ];
+
+        return view('account.order-track', compact('order', 'title', 'timeline'));
+    }
+
+    /**
+     * Cancel order by user
+     */
+    public function cancelUserOrder($id)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Chưa đăng nhập'], 401);
+        }
+
+        $order = DonHang::where('id', $id)
+            ->where('nguoi_dung_id', $user->id)
+            ->first();
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Không tìm thấy đơn hàng'], 404);
+        }
+
+        if ($order->trang_thai !== DonHang::TRANG_THAI_CHO_XAC_NHAN) {
+            return response()->json(['success' => false, 'message' => 'Chỉ có thể hủy đơn hàng đang chờ xác nhận'], 400);
+        }
+
+        // Restore stock
+        foreach ($order->chiTiet as $chiTiet) {
+            $chiTiet->sach->increment('so_luong_ton', $chiTiet->so_luong);
+        }
+
+        $order->update(['trang_thai' => DonHang::TRANG_THAI_DA_HUY]);
+
+        return response()->json(['success' => true, 'message' => 'Đã hủy đơn hàng thành công']);
+    }
+
+    /**
+     * Review order page
+     */
+    public function reviewOrder($id)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $order = DonHang::where('id', $id)
+            ->where('nguoi_dung_id', $user->id)
+            ->where('trang_thai', DonHang::TRANG_THAI_DA_GIAO)
+            ->with(['chiTiet.sach'])
+            ->firstOrFail();
+
+        $title = 'Đánh giá đơn hàng #' . $order->ma_don;
+
+        return view('account.order-review', compact('order', 'title'));
     }
 
     /**
@@ -28,8 +149,19 @@ class DonHangController extends Controller
     {
         $title = 'Thanh toán - BookStore';
         
-        // For now, show checkout page without authentication requirement
-        // In production, this would require authentication
+        // Yêu cầu đăng nhập để thanh toán
+        if (!\Illuminate\Support\Facades\Auth::check()) {
+            return redirect()->route('login')
+                ->with('tb_warning', 'Vui lòng đăng nhập để tiến hành thanh toán');
+        }
+        
+        // Kiểm tra giỏ hàng có sản phẩm không
+        $cartCount = \App\Models\GioHang::where('ma_nguoi_dung', \Illuminate\Support\Facades\Auth::id())->sum('so_luong');
+        if ($cartCount == 0) {
+            return redirect()->route('cart.index')
+                ->with('tb_warning', 'Giỏ hàng của bạn đang trống');
+        }
+        
         return view('checkout.index', compact('title'));
     }
 
@@ -38,6 +170,12 @@ class DonHangController extends Controller
      */
     public function processCheckout(Request $request)
     {
+        // Yêu cầu đăng nhập để đặt hàng
+        if (!\Illuminate\Support\Facades\Auth::check()) {
+            return redirect()->route('login')
+                ->with('tb_warning', 'Vui lòng đăng nhập để đặt hàng');
+        }
+        
         $rules = [
             'ho_ten' => 'required|string|max:255',
             'email' => 'required|email|max:255',
@@ -343,6 +481,16 @@ class DonHangController extends Controller
         }
 
         $donHang->update(['trang_thai' => $newStatus]);
+
+        // Send email notification about status change
+        try {
+            if ($donHang->nguoiDung && $donHang->nguoiDung->email) {
+                Mail::to($donHang->nguoiDung->email)
+                    ->queue(new OrderStatusChanged($donHang, $oldStatus, $newStatus));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send order status email: ' . $e->getMessage());
+        }
 
         return redirect()->back()
             ->with('tb_success', 'Cập nhật trạng thái đơn hàng thành công');

@@ -1,25 +1,24 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', $title)
 
 @section('content')
-<div class="container mt-4 mb-5">
     <!-- Header Section -->
-    <div class="card card-modern mb-4">
+    <div class="card mb-4">
         <div class="card-header">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h4 class="mb-1 fw-bold">
-                        <i class="fas fa-shopping-cart me-2"></i>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h4 style="margin: 0; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-shopping-cart"></i>
                         Quản lý đơn hàng
                     </h4>
-                    <p class="mb-0 text-muted">
+                    <p style="margin: 0.25rem 0 0; color: #64748b; font-size: 0.9rem;">
                         Theo dõi và xử lý các đơn hàng của khách hàng
                     </p>
                 </div>
-                <div class="col-md-6 text-md-end">
+                <div>
                     <a href="{{ route('admin.donhang.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>
+                        <i class="fas fa-plus"></i>
                         Tạo đơn hàng mới
                     </a>
                 </div>
@@ -246,12 +245,12 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('donhang.show', $order->id) }}" 
+                                            <a href="{{ route('admin.donhang.show', $order->ma_don_hang) }}" 
                                                class="btn btn-outline-info" title="Xem chi tiết">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             @if($order->canCancel())
-                                                <a href="{{ route('donhang.edit', $order->id) }}" 
+                                                <a href="{{ route('admin.donhang.edit', $order->ma_don_hang) }}" 
                                                    class="btn btn-outline-primary" title="Chỉnh sửa">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
@@ -305,7 +304,7 @@
                                                     @endif
                                                 </ul>
                                             </div>
-                                            <a href="{{ route('donhang.print', $order->id) }}" 
+                                            <a href="{{ route('admin.donhang.print', $order->ma_don_hang) }}" 
                                                class="btn btn-outline-success" title="In đơn hàng" target="_blank">
                                                 <i class="fas fa-print"></i>
                                             </a>

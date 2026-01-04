@@ -1,18 +1,15 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', $title)
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">{{ $title }}</h3>
-                    <div class="card-tools">
-                        <a href="{{ route('admin.magiamgia.show', $maGiamGia->ma_giam_gia) }}" class="btn btn-info me-2">
-                            <i class="fas fa-eye"></i> Xem chi tiết
-                        </a>
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title" style="margin: 0; font-weight: 600;">{{ $title }}</h3>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{{ route('admin.magiamgia.show', $maGiamGia->ma_giam_gia) }}" class="btn btn-info">
+                    <i class="fas fa-eye"></i> Xem chi tiết
+                </a>
                         <a href="{{ route('admin.magiamgia.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Quay lại
                         </a>

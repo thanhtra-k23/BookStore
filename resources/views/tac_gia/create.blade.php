@@ -1,18 +1,15 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Thêm Tác Giả Mới')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Thêm Tác Giả Mới</h3>
-                    <div class="card-tools">
-                        <a href="{{ route('admin.tacgia.index') }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left"></i> Quay lại
-                        </a>
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title" style="margin: 0; font-weight: 600;">Thêm Tác Giả Mới</h3>
+            <div>
+                <a href="{{ route('admin.tacgia.index') }}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
                     </div>
                 </div>
 

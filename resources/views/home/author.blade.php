@@ -1,149 +1,96 @@
-@extends('layouts.app')
+@extends('layouts.pure-blade')
 
 @section('title', $title)
 
+@push('styles')
+<style>
+    .author-hero {
+        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        color: white;
+        padding: 3rem 0;
+        margin: -1.5rem -15px 0;
+        width: calc(100% + 30px);
+    }
+    .author-hero-content { text-align: center; }
+    .author-avatar-large {
+        width: 120px; height: 120px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 3rem;
+        border: 4px solid rgba(255,255,255,0.3);
+    }
+    .author-avatar-large img {
+        width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+    }
+    .author-name { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .author-meta { font-size: 1rem; opacity: 0.9; }
+    .author-bio {
+        max-width: 700px; margin: 1rem auto 0;
+        font-size: 0.95rem; opacity: 0.85; line-height: 1.6;
+    }
+    .author-stats {
+        display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem;
+    }
+    .author-stat { text-align: center; }
+    .author-stat-value { font-size: 1.75rem; font-weight: 700; }
+    .author-stat-label { font-size: 0.85rem; opacity: 0.8; }
+    .filter-bar {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 1rem 0; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .filter-bar .result-count { color: #64748b; font-size: 0.95rem; }
+    .filter-bar .result-count span { font-weight: 700; color: #8b5cf6; }
+    .sort-select {
+        padding: 0.6rem 1rem; border: 2px solid #e2e8f0; border-radius: 10px;
+        font-size: 0.9rem; background: white; cursor: pointer; min-width: 180px;
+    }
+    .sort-select:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+    .books-grid-modern { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; }
+    @media (max-width: 1400px) { .books-grid-modern { grid-template-columns: repeat(5, 1fr); } }
+    @media (max-width: 1200px) { .books-grid-modern { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 900px) { .books-grid-modern { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) { 
+        .books-grid-modern { grid-template-columns: repeat(2, 1fr); }
+        .author-name { font-size: 1.75rem; }
+        .author-hero { padding: 2rem 0; }
+        .author-stats { gap: 1rem; }
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="container py-5">
-    <!-- Author Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('home') }}" class="text-decoration-none">Trang chủ</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('authors') }}" class="text-decoration-none">Tác giả</a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">
-                        {{ $author->ten_tac_gia }}
-                    </li>
-                </ol>
-            </nav>
-
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="d-flex align-items-center mb-3">
-                        @if($author->anh_dai_dien)
-                            <img src="{{ $author->anh_dai_dien_url }}" 
-                                 alt="{{ $author->ten_tac_gia }}" 
-                                 class="rounded-circle me-3" 
-                                 style="width: 80px; height: 80px; object-fit: cover;">
-                        @else
-                            <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center me-3" 
-                                 style="width: 80px; height: 80px;">
-                                <i class="fas fa-user text-white fs-3"></i>
-                            </div>
-                        @endif
-                        <div>
-                            <h1 class="mb-1">{{ $author->ten_tac_gia }}</h1>
-                            @if($author->quoc_tich)
-                                <p class="text-muted mb-1">
-                                    <i class="fas fa-flag me-1"></i>
-                                    {{ $author->quoc_tich }}
-                                </p>
-                            @endif
-                            @if($author->ngay_sinh)
-                                <p class="text-muted mb-0">
-                                    <i class="fas fa-birthday-cake me-1"></i>
-                                    {{ $author->ngay_sinh->format('d/m/Y') }}
-                                    @if($author->ngay_mat)
-                                        - {{ $author->ngay_mat->format('d/m/Y') }}
-                                    @endif
-                                </p>
-                            @endif
-                        </div>
-                    </div>
-
-                    @if($author->tieu_su)
-                        <div class="mb-4">
-                            <h5>Tiểu sử</h5>
-                            <p class="text-muted">{{ $author->tieu_su }}</p>
-                        </div>
-                    @endif
+<div class="author-hero">
+    <div class="container">
+        <div class="author-hero-content">
+            <div class="author-avatar-large">
+                @if($author->anh_dai_dien)
+                    <img src="{{ $author->anh_dai_dien_url }}" alt="{{ $author->ten_tac_gia }}">
+                @else
+                    ✍️
+                @endif
+            </div>
+            <h1 class="author-name">{{ $author->ten_tac_gia }}</h1>
+            @if($author->quoc_tich)
+                <p class="author-meta">🌍 {{ $author->quoc_tich }}</p>
+            @endif
+            @if($author->tieu_su)
+                <p class="author-bio">{{ Str::limit($author->tieu_su, 200) }}</p>
+            @endif
+            <div class="author-stats">
+                <div class="author-stat">
+                    <div class="author-stat-value">{{ $books->total() }}</div>
+                    <div class="author-stat-label">📚 Cuốn sách</div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Thống kê</h5>
-                            <div class="row">
-                                <div class="col-6">
-                                    <h3 class="text-primary mb-1">{{ $books->total() }}</h3>
-                                    <small class="text-muted">Cuốn sách</small>
-                                </div>
-                                <div class="col-6">
-                                    <h3 class="text-success mb-1">{{ $author->luot_xem ?? 0 }}</h3>
-                                    <small class="text-muted">Lượt xem</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="author-stat">
+                    <div class="author-stat-value">{{ number_format($author->luot_xem ?? 0) }}</div>
+                    <div class="author-stat-label">👁️ Lượt xem</div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Filters and Sorting -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h3>Sách của {{ $author->ten_tac_gia }}</h3>
-            <p class="text-muted mb-0">
-                Tìm thấy {{ $books->total() }} cuốn sách
-            </p>
-        </div>
-        <div class="col-md-6">
-            <form method="GET" action="{{ route('author', $author->duong_dan) }}" class="d-flex justify-content-end">
-                <select name="sort" class="form-select w-auto" onchange="this.form.submit()">
-                    <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>
-                        Mới nhất
-                    </option>
-                    <option value="popular" {{ request('sort') == 'popular' ? 'selected' : '' }}>
-                        Phổ biến nhất
-                    </option>
-                    <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>
-                        Giá tăng dần
-                    </option>
-                    <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>
-                        Giá giảm dần
-                    </option>
-                    <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>
-                        Đánh giá cao
-                    </option>
-                </select>
-            </form>
-        </div>
-    </div>
-
-    @if($books->count() > 0)
-        <!-- Books Grid -->
-        <div class="row">
-            @foreach($books as $book)
-                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    @include('partials.book-card', ['book' => $book])
-                </div>
-            @endforeach
-        </div>
-
-        <!-- Pagination -->
-        <div class="d-flex justify-content-center">
-            {{ $books->appends(request()->query())->links() }}
-        </div>
-    @else
-        <div class="text-center py-5">
-            <i class="fas fa-book-open text-muted" style="font-size: 4rem;"></i>
-            <h3 class="mt-3 text-muted">Chưa có sách nào</h3>
-            <p class="text-muted">
-                Tác giả "{{ $author->ten_tac_gia }}" hiện chưa có sách nào trong hệ thống.
-            </p>
-            <div class="mt-3">
-                <a href="{{ route('authors') }}" class="btn btn-primary me-2">
-                    Xem tác giả khác
-                </a>
-                <a href="{{ route('home') }}" class="btn btn-outline-primary">
-                    Về trang chủ
-                </a>
-            </div>
-        </div>
-    @endif
 </div>
+
+@include('home.partials.book-grid-author', ['books' => $books, 'author' => $author])
 @endsection

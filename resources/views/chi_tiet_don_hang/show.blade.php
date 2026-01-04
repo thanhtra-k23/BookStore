@@ -230,7 +230,7 @@
                 <div class="card-body">
                     <div class="text-center mb-3">
                         <h5 class="fw-bold">
-                            <a href="{{ route('donhang.show', $chiTiet->donHang->id) }}" 
+                            <a href="{{ route('admin.donhang.show', $chiTiet->donHang->id) }}" 
                                class="text-decoration-none">
                                 {{ $chiTiet->donHang->ma_don }}
                             </a>
@@ -287,7 +287,7 @@
                     </table>
 
                     <div class="d-grid">
-                        <a href="{{ route('donhang.show', $chiTiet->donHang->id) }}" class="btn btn-outline-primary">
+                        <a href="{{ route('admin.donhang.show', $chiTiet->donHang->id) }}" class="btn btn-outline-primary">
                             <i class="fas fa-eye me-2"></i>
                             Xem đơn hàng đầy đủ
                         </a>

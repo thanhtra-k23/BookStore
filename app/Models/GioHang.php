@@ -13,7 +13,7 @@ class GioHang extends Model
     protected $primaryKey = 'ma_gio_hang';
 
     protected $fillable = [
-        'ma_nguoi_dung', 'ma_sach', 'so_luong'
+        'ma_nguoi_dung', 'ma_sach', 'so_luong', 'gia_tai_thoi_diem'
     ];
 
     protected $casts = [
@@ -85,10 +85,13 @@ class GioHang extends Model
             return $existingItem->increaseQuantity($soLuong);
         }
 
+        $sach = Sach::find($sachId);
+        
         return static::create([
             'ma_nguoi_dung' => $nguoiDungId,
             'ma_sach' => $sachId,
-            'so_luong' => $soLuong
+            'so_luong' => $soLuong,
+            'gia_tai_thoi_diem' => $sach ? ($sach->gia_khuyen_mai ?? $sach->gia_ban) : 0
         ]);
     }
 

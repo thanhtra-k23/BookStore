@@ -1,16 +1,15 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', $title)
 
 @section('content')
-<div class="container mt-4 mb-5">
     <!-- Header Section -->
-    <div class="card card-modern mb-4">
+    <div class="card mb-4">
         <div class="card-header">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h4 class="mb-1 fw-bold">
-                        <i class="fas fa-list-alt me-2"></i>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h4 style="margin: 0; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-list-alt"></i>
                         Quản lý chi tiết đơn hàng
                     </h4>
                     <p class="mb-0 text-muted">
@@ -166,7 +165,7 @@
                                         <td>
                                             <div>
                                                 <div class="fw-bold">
-                                                    <a href="{{ route('donhang.show', $item->donHang->id) }}" 
+                                                    <a href="{{ route('admin.donhang.show', $item->donHang->id) }}" 
                                                        class="text-decoration-none">
                                                         {{ $item->donHang->ma_don }}
                                                     </a>

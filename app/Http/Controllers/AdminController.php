@@ -19,16 +19,34 @@ class AdminController extends Controller
         // Basic statistics
         $stats = [
             'total_books' => Sach::count(),
+            'active_books' => Sach::where('trang_thai', 'active')->count(),
             'orders_today' => DonHang::whereDate('created_at', today())->count(),
+            'pending_orders' => DonHang::where('trang_thai', 'cho_xac_nhan')->count(),
             'revenue_month' => DonHang::whereMonth('created_at', now()->month)
                 ->whereYear('created_at', now()->year)
                 ->where('trang_thai', '!=', 'da_huy')
                 ->sum('tong_tien'),
-            'total_customers' => NguoiDung::count(),
+            'total_customers' => NguoiDung::where('vai_tro', '!=', 'admin')->count(),
+            'new_customers_month' => NguoiDung::where('vai_tro', '!=', 'admin')
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count(),
         ];
 
-        // Recent orders (last 10) - simplified for now
-        $recent_orders = collect(); // Empty collection for now
+        // Order statistics by status
+        $order_stats = [
+            'pending' => DonHang::where('trang_thai', 'cho_xac_nhan')->count(),
+            'confirmed' => DonHang::where('trang_thai', 'da_xac_nhan')->count(),
+            'shipping' => DonHang::where('trang_thai', 'dang_giao')->count(),
+            'completed' => DonHang::where('trang_thai', 'da_giao')->count(),
+            'cancelled' => DonHang::where('trang_thai', 'da_huy')->count(),
+        ];
+
+        // Recent orders (last 10)
+        $recent_orders = DonHang::with(['nguoiDung'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
         
         // Low stock books (less than 10 items)
         $low_stock_books = Sach::with(['tacGia'])
@@ -37,6 +55,9 @@ class AdminController extends Controller
             ->orderBy('so_luong_ton', 'asc')
             ->limit(10)
             ->get();
+
+        // Best selling books
+        $best_sellers = $this->getBestSellers(10);
 
         // Chart data for revenue (last 12 months)
         $revenue_data = $this->getRevenueChartData();
@@ -49,12 +70,43 @@ class AdminController extends Controller
             'categories' => $category_data
         ];
 
+        // Categories for marketing cards (top 6 with book count)
+        $categories = TheLoai::withCount('sach')
+            ->where('trang_thai', true)
+            ->orderBy('sach_count', 'desc')
+            ->limit(6)
+            ->get();
+        
+        $totalCategories = TheLoai::count();
+
         return view('admin.dashboard', compact(
             'stats',
+            'order_stats',
             'recent_orders',
             'low_stock_books',
-            'chart_data'
+            'best_sellers',
+            'chart_data',
+            'categories',
+            'totalCategories'
         ));
+    }
+
+    private function getBestSellers($limit = 10)
+    {
+        return DB::table('chi_tiet_don_hang')
+            ->join('sach', 'chi_tiet_don_hang.ma_sach', '=', 'sach.ma_sach')
+            ->join('don_hang', 'chi_tiet_don_hang.ma_don_hang', '=', 'don_hang.ma_don_hang')
+            ->where('don_hang.trang_thai', '!=', 'da_huy')
+            ->select(
+                'sach.ma_sach',
+                'sach.ten_sach',
+                DB::raw('SUM(chi_tiet_don_hang.so_luong) as total_sold'),
+                DB::raw('SUM(chi_tiet_don_hang.thanh_tien) as total_revenue')
+            )
+            ->groupBy('sach.ma_sach', 'sach.ten_sach')
+            ->orderBy('total_sold', 'desc')
+            ->limit($limit)
+            ->get();
     }
 
     private function getRevenueChartData()
@@ -102,7 +154,21 @@ class AdminController extends Controller
         $thisMonth = Carbon::now()->startOfMonth();
         $thisYear = Carbon::now()->startOfYear();
 
-        $stats = [
+        // Quick stats for header (flat structure for easy access)
+        $quickStats = [
+            'orders_today' => DonHang::whereDate('created_at', $today)->count(),
+            'revenue_today' => DonHang::whereDate('created_at', $today)
+                ->where('trang_thai', '!=', 'da_huy')
+                ->sum('tong_tien'),
+            'new_users' => NguoiDung::where('vai_tro', '!=', 'admin')
+                ->whereDate('created_at', $today)->count(),
+            'low_stock' => Sach::where('so_luong_ton', '<=', 10)
+                ->where('trang_thai', 'active')->count(),
+            'pending_orders' => DonHang::where('trang_thai', 'cho_xac_nhan')->count(),
+        ];
+
+        // Detailed stats (nested structure)
+        $detailedStats = [
             // Books
             'books' => [
                 'total' => Sach::count(),
@@ -151,7 +217,8 @@ class AdminController extends Controller
             'publishers' => NhaXuatBan::count(),
         ];
 
-        return response()->json($stats);
+        // Merge quick stats with detailed stats
+        return response()->json(array_merge($quickStats, $detailedStats));
     }
 
     public function getRevenueChart(Request $request)

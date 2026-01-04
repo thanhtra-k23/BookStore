@@ -16,17 +16,16 @@ class YeuThichController extends Controller
     {
         $title = 'Danh sách yêu thích';
         
+        // Yêu cầu đăng nhập để xem danh sách yêu thích
         if (!Auth::check()) {
-            // Show empty wishlist for guests
-            $yeuThich = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect(), 0, 12, 1, ['path' => request()->url()]
-            );
-        } else {
-            $yeuThich = YeuThich::byUser(Auth::id())
-                               ->with('sach.tacGia', 'sach.theLoai', 'sach.nhaXuatBan')
-                               ->latest()
-                               ->paginate(12);
+            return redirect()->route('login')
+                ->with('tb_warning', 'Vui lòng đăng nhập để xem danh sách yêu thích');
         }
+        
+        $yeuThich = YeuThich::byUser(Auth::id())
+                           ->with('sach.tacGia', 'sach.theLoai', 'sach.nhaXuatBan')
+                           ->latest()
+                           ->paginate(12);
 
         return view('yeu_thich.index', compact('yeuThich', 'title'));
     }
@@ -43,11 +42,27 @@ class YeuThichController extends Controller
             ], 401);
         }
 
-        $request->validate([
-            'sach_id' => 'required|exists:sach,id'
-        ]);
+        // Support both sach_id and ma_sach
+        $sachId = $request->sach_id ?? $request->ma_sach;
+        
+        if (!$sachId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Thiếu mã sách'
+            ], 400);
+        }
 
-        $isAdded = YeuThich::toggle(Auth::id(), $request->sach_id);
+        // Find book by ma_sach or id
+        $sach = Sach::where('ma_sach', $sachId)->orWhere('id', $sachId)->first();
+        
+        if (!$sach) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy sách'
+            ], 404);
+        }
+
+        $isAdded = YeuThich::toggle(Auth::id(), $sach->id);
         $favoriteCount = YeuThich::getFavoriteCount(Auth::id());
 
         return response()->json([

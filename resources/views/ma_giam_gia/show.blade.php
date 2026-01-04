@@ -1,18 +1,15 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', $title)
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <!-- Header Card -->
-            <div class="card card-modern mb-4">
-                <div class="card-header">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h4 class="mb-1 fw-bold">
-                                <i class="fas fa-tag me-2"></i>
+    <!-- Header Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h4 style="margin: 0; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-tag"></i>
                                 Chi tiết mã giảm giá
                             </h4>
                             <p class="mb-0 text-muted">

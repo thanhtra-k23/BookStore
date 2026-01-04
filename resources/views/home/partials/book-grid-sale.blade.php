@@ -1,0 +1,128 @@
+@push('styles')
+<style>
+    .filter-bar {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 1rem 0; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .filter-bar .result-count { color: #64748b; font-size: 0.95rem; }
+    .filter-bar .result-count span { font-weight: 700; color: #ef4444; }
+    .sort-select {
+        padding: 0.6rem 1rem; border: 2px solid #e2e8f0; border-radius: 10px;
+        font-size: 0.9rem; background: white; cursor: pointer; min-width: 180px;
+    }
+    .sort-select:focus { outline: none; border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+    .books-grid-modern {
+        display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem;
+    }
+    @media (max-width: 1400px) { .books-grid-modern { grid-template-columns: repeat(5, 1fr); } }
+    @media (max-width: 1200px) { .books-grid-modern { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 900px) { .books-grid-modern { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) { .books-grid-modern { grid-template-columns: repeat(2, 1fr); } }
+    .book-card-modern {
+        background: white; border-radius: 12px; overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06); transition: all 0.3s ease; border: 1px solid #f1f5f9;
+    }
+    .book-card-modern:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 15px 35px rgba(0,0,0,0.12); }
+    .book-card-modern .book-image-wrapper {
+        position: relative; height: 220px;
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .book-card-modern .book-image-wrapper img {
+        max-width: 70%; max-height: 90%; object-fit: contain;
+        border-radius: 4px; box-shadow: 0 3px 15px rgba(0,0,0,0.15); transition: transform 0.3s;
+    }
+    .book-card-modern:hover .book-image-wrapper img { transform: scale(1.05); }
+    .book-card-modern .discount-badge {
+        position: absolute; top: 8px; left: 8px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white; padding: 6px 12px; border-radius: 15px;
+        font-size: 0.8rem; font-weight: 700; z-index: 5;
+    }
+    .book-card-modern .wishlist-btn {
+        position: absolute; top: 8px; right: 8px; width: 32px; height: 32px;
+        background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.3s; z-index: 5; font-size: 1rem;
+    }
+    .book-card-modern .wishlist-btn:hover { background: #fee2e2; transform: scale(1.1); }
+    .book-card-modern .book-body { padding: 0.875rem; }
+    .book-card-modern .book-title {
+        font-size: 0.9rem; font-weight: 600; color: #1e293b; margin-bottom: 0.35rem;
+        line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4em;
+    }
+    .book-card-modern .book-title a { color: inherit; text-decoration: none; }
+    .book-card-modern .book-title a:hover { color: #ef4444; }
+    .book-card-modern .book-rating { display: flex; align-items: center; gap: 4px; margin-bottom: 0.5rem; font-size: 0.75rem; }
+    .book-card-modern .book-rating .stars { color: #f59e0b; }
+    .book-card-modern .book-rating .count { color: #94a3b8; }
+    .book-card-modern .book-price-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .book-card-modern .price-current { font-size: 1.1rem; font-weight: 700; color: #dc2626; }
+    .book-card-modern .price-old { font-size: 0.75rem; color: #94a3b8; text-decoration: line-through; }
+    .book-card-modern .btn-add-cart {
+        width: 36px; height: 36px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        border: none; border-radius: 50%; color: white;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.3s; font-size: 1rem;
+    }
+    .book-card-modern .btn-add-cart:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); transform: scale(1.1); }
+    .empty-state { text-align: center; padding: 4rem 2rem; }
+    .empty-state .icon { font-size: 5rem; margin-bottom: 1rem; }
+    .pagination-wrapper { margin-top: 2rem; display: flex; justify-content: center; }
+</style>
+@endpush
+
+<div class="container" style="padding-top: 1.5rem;">
+    <div class="filter-bar">
+        <p class="result-count">Tìm thấy <span>{{ $books->total() }}</span> sách đang giảm giá</p>
+        <form method="GET" action="{{ route('sale') }}">
+            <select name="sort" class="sort-select" onchange="this.form.submit()">
+                <option value="discount" {{ request('sort', 'discount') == 'discount' ? 'selected' : '' }}>Giảm nhiều nhất</option>
+                <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Mới nhất</option>
+                <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Giá thấp → cao</option>
+                <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Giá cao → thấp</option>
+                <option value="popular" {{ request('sort') == 'popular' ? 'selected' : '' }}>Phổ biến nhất</option>
+            </select>
+        </form>
+    </div>
+
+    @if($books->count() > 0)
+        <div class="books-grid-modern">
+            @foreach($books as $book)
+                <div class="book-card-modern">
+                    <div class="book-image-wrapper">
+                        @php $discount = $book->gia_ban > 0 ? round((($book->gia_ban - $book->gia_khuyen_mai) / $book->gia_ban) * 100) : 0; @endphp
+                        @if($discount > 0)<div class="discount-badge">-{{ $discount }}%</div>@endif
+                        <button class="wishlist-btn" onclick="toggleWishlist({{ $book->ma_sach }})" title="Yêu thích">❤️</button>
+                        <a href="{{ route('book.detail', ['id' => $book->ma_sach, 'slug' => $book->slug ?? Str::slug($book->ten_sach)]) }}">
+                            <img src="{{ $book->anh_bia_url ?? '/images/no-image.png' }}" alt="{{ $book->ten_sach }}" onerror="this.src='/images/no-image.png'">
+                        </a>
+                    </div>
+                    <div class="book-body">
+                        <h3 class="book-title">
+                            <a href="{{ route('book.detail', ['id' => $book->ma_sach, 'slug' => $book->slug ?? Str::slug($book->ten_sach)]) }}">{{ $book->ten_sach }}</a>
+                        </h3>
+                        <div class="book-rating"><span class="stars">★★★★☆</span><span class="count">({{ rand(10, 200) }})</span></div>
+                        <div class="book-price-row">
+                            <div>
+                                <div class="price-current">{{ number_format($book->gia_khuyen_mai) }}₫</div>
+                                <div class="price-old">{{ number_format($book->gia_ban) }}₫</div>
+                            </div>
+                            <button class="btn-add-cart" onclick="addToCartQuick({{ $book->ma_sach }})" title="Thêm vào giỏ">🛒</button>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        <div class="pagination-wrapper">{{ $books->appends(request()->query())->links() }}</div>
+    @else
+        <div class="empty-state">
+            <div class="icon">🏷️</div>
+            <h3>Hiện chưa có sách khuyến mãi</h3>
+            <p style="color: #94a3b8;">Hãy quay lại sau để săn deal nhé!</p>
+            <a href="{{ route('home') }}" class="btn btn-primary">🏠 Về trang chủ</a>
+        </div>
+    @endif
+</div>

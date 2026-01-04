@@ -1,18 +1,15 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', $title)
 
 @section('content')
-<div class="container mt-4 mb-5">
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('admin.sach.index') }}" class="text-decoration-none">
-                    <i class="fas fa-book me-1"></i>
-                    Quản lý sách
-                </a>
-            </li>
+    <nav style="margin-bottom: 1.5rem;">
+        <span style="color: #64748b; font-size: 0.9rem;">
+            <a href="{{ route('admin.sach.index') }}" style="color: #3b82f6; text-decoration: none;">
+                <i class="fas fa-book"></i>
+                Quản lý sách
+            </a>
             <li class="breadcrumb-item active">Thêm sách mới</li>
         </ol>
     </nav>

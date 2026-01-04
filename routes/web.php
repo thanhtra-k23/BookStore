@@ -29,16 +29,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Authentication Routes
+// Authentication Routes - với Rate Limiting chống brute force
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register');
     Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('forgot-password');
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:password-reset');
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('reset-password');
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset');
 });
 
 Route::middleware('auth')->group(function () {
@@ -48,11 +48,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/verify-email/resend', [AuthController::class, 'resendVerificationEmail'])->name('verification.send');
 });
 
-// Public Routes
+// Public Routes - với Rate Limiting cho search
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/pure', [HomeController::class, 'index'])->name('home.pure'); // Pure Blade version
 Route::get('/original', [HomeController::class, 'indexOriginal'])->name('home.original'); // Original version
-Route::get('/search', [HomeController::class, 'search'])->name('search');
+Route::get('/search', [HomeController::class, 'search'])->middleware('throttle:search')->name('search');
 Route::get('/categories', [HomeController::class, 'categories'])->name('categories');
 Route::get('/category/{slug}', [HomeController::class, 'category'])->name('category');
 Route::get('/authors', [HomeController::class, 'authors'])->name('authors');
@@ -61,6 +61,13 @@ Route::get('/book/{id}/{slug?}', [HomeController::class, 'bookDetail'])->name('b
 Route::get('/books/{id}', [HomeController::class, 'bookDetail'])->name('books.detail');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
+Route::get('/faq', [HomeController::class, 'faq'])->name('faq');
+Route::get('/shipping-policy', [HomeController::class, 'shippingPolicy'])->name('shipping-policy');
+Route::get('/return-policy', [HomeController::class, 'returnPolicy'])->name('return-policy');
+Route::get('/privacy-policy', [HomeController::class, 'privacyPolicy'])->name('privacy-policy');
+Route::get('/new-books', [HomeController::class, 'newBooks'])->name('new-books');
+Route::get('/bestsellers', [HomeController::class, 'bestsellers'])->name('bestsellers');
+Route::get('/sale', [HomeController::class, 'sale'])->name('sale');
 
 // User Routes (can be accessed by guests and authenticated users)
 Route::get('/cart', [GioHangController::class, 'index'])->name('cart.index');
@@ -69,18 +76,28 @@ Route::get('/wishlist', [YeuThichController::class, 'index'])->name('wishlist.in
 // Authenticated User Routes
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [NguoiDungController::class, 'profile'])->name('profile');
+    Route::put('/profile/update', [NguoiDungController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profile/password', [NguoiDungController::class, 'changePassword'])->name('profile.password');
     Route::get('/orders', [DonHangController::class, 'userOrders'])->name('orders');
+    Route::get('/orders/{id}', [DonHangController::class, 'showUserOrder'])->name('orders.show');
+    Route::get('/orders/{id}/track', [DonHangController::class, 'trackOrder'])->name('orders.track');
+    Route::post('/orders/{id}/cancel', [DonHangController::class, 'cancelUserOrder'])->name('orders.cancel');
+    Route::get('/orders/{id}/review', [DonHangController::class, 'reviewOrder'])->name('orders.review');
     
     // Account management
     Route::prefix('account')->name('account.')->group(function () {
         Route::get('/addresses', [NguoiDungController::class, 'addresses'])->name('addresses');
+        Route::post('/addresses', [NguoiDungController::class, 'storeAddress'])->name('addresses.store');
+        Route::put('/addresses/{id}', [NguoiDungController::class, 'updateAddress'])->name('addresses.update');
+        Route::delete('/addresses/{id}', [NguoiDungController::class, 'deleteAddress'])->name('addresses.delete');
+        Route::post('/addresses/{id}/default', [NguoiDungController::class, 'setDefaultAddress'])->name('addresses.default');
         Route::get('/settings', [NguoiDungController::class, 'settings'])->name('settings');
     });
 });
 
-// Checkout routes (accessible without authentication for demo)
+// Checkout routes - với Rate Limiting chống spam
 Route::get('/checkout', [DonHangController::class, 'checkout'])->name('checkout');
-Route::post('/checkout/process', [DonHangController::class, 'processCheckout'])->name('checkout.process');
+Route::post('/checkout/process', [DonHangController::class, 'processCheckout'])->middleware('throttle:checkout')->name('checkout.process');
 Route::get('/checkout/success', [DonHangController::class, 'checkoutSuccess'])->name('checkout.success');
 
 // Test route
@@ -91,8 +108,8 @@ Route::get('/simple', function() {
     return view('layouts.app', ['title' => 'Test']); 
 });
 
-// Authenticated User Routes (temporarily disabled auth middleware for testing)
-Route::group([], function () {
+// Shopping Cart & Wishlist Routes - với Rate Limiting
+Route::middleware(['throttle:cart'])->group(function () {
     // Shopping Cart
     Route::post('/cart/add', [GioHangController::class, 'add'])->name('cart.add');
     Route::put('/cart/update/{id}', [GioHangController::class, 'update'])->name('cart.update');
@@ -105,7 +122,10 @@ Route::group([], function () {
     Route::delete('/wishlist/remove/{id}', [YeuThichController::class, 'remove'])->name('wishlist.remove');
     Route::delete('/wishlist/clear', [YeuThichController::class, 'clear'])->name('wishlist.clear');
     Route::post('/wishlist/add-to-cart', [YeuThichController::class, 'addToCart'])->name('wishlist.add-to-cart');
-    
+});
+
+// User Routes (không cần rate limit riêng)
+Route::group([], function () {
     // User Profile & Orders
     Route::get('/profile', [NguoiDungController::class, 'profile'])->name('profile');
     Route::get('/orders', [DonHangController::class, 'userOrders'])->name('orders');
@@ -115,10 +135,14 @@ Route::group([], function () {
     Route::delete('/reviews/{id}', [DanhGiaController::class, 'destroy'])->name('reviews.destroy');
 });
 
-// Admin Routes (temporarily disabled auth middleware for testing)
-Route::prefix('admin')->name('admin.')->group(function () {
+// Admin Routes - với Rate Limiting cho admin actions
+Route::prefix('admin')->name('admin.')->middleware(['throttle:admin'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    
+    // API Testing Dashboard
+    Route::get('/api-test', [\App\Http\Controllers\ApiTestController::class, 'index'])->name('api-test');
+    Route::post('/api-test/run', [\App\Http\Controllers\ApiTestController::class, 'testEndpoint'])->name('api-test.run');
     Route::get('/stats', [AdminController::class, 'getStats'])->name('stats');
     Route::get('/revenue-chart', [AdminController::class, 'getRevenueChart'])->name('revenue-chart');
     Route::get('/top-selling', [AdminController::class, 'getTopSellingBooks'])->name('top-selling');
@@ -172,10 +196,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('magiamgia/{id}/toggle-status', [MaGiamGiaController::class, 'toggleStatus'])->name('magiamgia.toggle-status');
 });
 
-// API Routes for AJAX calls
-Route::prefix('api')->group(function () {
+// API Routes for AJAX calls - với Rate Limiting
+Route::prefix('api')->middleware(['throttle:api'])->group(function () {
     Route::get('/cart/count', [GioHangController::class, 'getCount']);
+    Route::get('/cart/items', [GioHangController::class, 'getItems']);
     Route::get('/wishlist/count', [YeuThichController::class, 'getCount']);
     Route::post('/discount/validate', [MaGiamGiaController::class, 'validate']);
     Route::get('/books/{id}/reviews', [DanhGiaController::class, 'getBookReviews']);
+    Route::get('/search/autocomplete', [HomeController::class, 'searchAutocomplete']);
 });

@@ -15,11 +15,13 @@ class TheLoai extends Model
     protected $primaryKey = 'ma_the_loai';
 
     protected $fillable = [
-        'ten_the_loai', 'duong_dan', 'mo_ta', 'hinh_anh', 'thu_tu_hien_thi'
+        'ten_the_loai', 'duong_dan', 'mo_ta', 'hinh_anh', 'thu_tu_hien_thi', 'ma_the_loai_cha', 'trang_thai'
     ];
 
     protected $casts = [
         'thu_tu_hien_thi' => 'integer',
+        'ma_the_loai_cha' => 'integer',
+        'trang_thai' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'
@@ -47,6 +49,30 @@ class TheLoai extends Model
     public function sach()
     {
         return $this->hasMany(Sach::class, 'ma_the_loai');
+    }
+
+    // Thể loại cha (parent category)
+    public function theLoaiCha()
+    {
+        return $this->belongsTo(TheLoai::class, 'ma_the_loai_cha', 'ma_the_loai');
+    }
+
+    // Alias cho theLoaiCha
+    public function parent()
+    {
+        return $this->belongsTo(TheLoai::class, 'ma_the_loai_cha', 'ma_the_loai');
+    }
+
+    // Thể loại con (child categories)
+    public function theLoaiCon()
+    {
+        return $this->hasMany(TheLoai::class, 'ma_the_loai_cha', 'ma_the_loai');
+    }
+
+    // Alias cho theLoaiCon
+    public function children()
+    {
+        return $this->hasMany(TheLoai::class, 'ma_the_loai_cha', 'ma_the_loai');
     }
 
     // Accessor methods
@@ -80,9 +106,29 @@ class TheLoai extends Model
         return $query->withCount('sach');
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('trang_thai', true);
+    }
+
+    public function scopeParentOnly($query)
+    {
+        return $query->whereNull('ma_the_loai_cha');
+    }
+
     // Helper methods
     public function getTotalBookCount()
     {
         return $this->sach()->count();
+    }
+
+    public function hasChildren()
+    {
+        return $this->theLoaiCon()->count() > 0;
+    }
+
+    public function isChild()
+    {
+        return !is_null($this->ma_the_loai_cha);
     }
 }

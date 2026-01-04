@@ -1,18 +1,17 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Chỉnh sửa thể loại: ' . $theLoai->ten_the_loai)
 
 @section('content')
-<div class="container-fluid">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 class="h3 mb-0 text-gray-800">
-                <i class="fas fa-edit me-2"></i>Chỉnh sửa thể loại
+            <h1 style="font-size: 1.5rem; margin: 0; color: #1e293b; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-edit"></i>Chỉnh sửa thể loại
             </h1>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li>
+            <nav style="margin-top: 0.5rem;">
+                <span style="color: #64748b; font-size: 0.9rem;">
+                    <a href="{{ route('home') }}" style="color: #3b82f6; text-decoration: none;">Trang chủ</a>
                     <li class="breadcrumb-item"><a href="{{ route('admin.theloai.index') }}">Thể loại</a></li>
                     <li class="breadcrumb-item active">{{ $theLoai->ten_the_loai }}</li>
                 </ol>

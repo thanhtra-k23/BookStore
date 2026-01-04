@@ -53,7 +53,7 @@ class DonHang extends Model
     // Relationships
     public function nguoiDung()
     {
-        return $this->belongsTo(NguoiDung::class, 'ma_nguoi_dung', 'ma_nguoi_dung');
+        return $this->belongsTo(User::class, 'ma_nguoi_dung', 'id');
     }
 
     public function chiTiet()

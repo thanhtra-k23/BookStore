@@ -14,9 +14,105 @@ class NguoiDungController extends Controller
      */
     public function profile()
     {
-        // For now, redirect to home with message since auth is not implemented
-        return redirect()->route('home')
-            ->with('tb_info', 'Chức năng hồ sơ người dùng đang được phát triển');
+        $user = Auth::user();
+        
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('tb_info', 'Vui lòng đăng nhập để xem hồ sơ');
+        }
+
+        // Get user orders
+        $orders = \App\Models\DonHang::where('nguoi_dung_id', $user->id)
+            ->with(['chiTiet.sach'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Get wishlist
+        $wishlist = \App\Models\YeuThich::where('nguoi_dung_id', $user->id)
+            ->with(['sach.tacGia'])
+            ->get();
+
+        // Get reviews
+        $reviews = \App\Models\DanhGia::where('nguoi_dung_id', $user->id)
+            ->with(['sach'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Get addresses (if table exists)
+        $addresses = collect();
+        try {
+            if (\Schema::hasTable('dia_chi')) {
+                $addresses = \App\Models\DiaChi::where('nguoi_dung_id', $user->id)->get();
+            }
+        } catch (\Exception $e) {
+            // Table doesn't exist, use empty collection
+        }
+
+        $title = 'Tài khoản của tôi - BookStore';
+
+        return view('account.profile', compact(
+            'user', 
+            'orders', 
+            'wishlist', 
+            'reviews', 
+            'addresses',
+            'title'
+        ))->with([
+            'orderCount' => $orders->count(),
+            'wishlistCount' => $wishlist->count()
+        ]);
+    }
+
+    /**
+     * Update user profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Chưa đăng nhập'], 401);
+        }
+
+        $request->validate([
+            'ho_ten' => 'required|string|max:255',
+            'so_dien_thoai' => 'nullable|string|max:15',
+            'dia_chi' => 'nullable|string|max:500',
+            'ngay_sinh' => 'nullable|date'
+        ]);
+
+        $user->update($request->only(['ho_ten', 'so_dien_thoai', 'dia_chi', 'ngay_sinh']));
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Cập nhật thông tin thành công']);
+        }
+
+        return redirect()->back()->with('tb_success', 'Cập nhật thông tin thành công');
+    }
+
+    /**
+     * Change password
+     */
+    public function changePassword(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Chưa đăng nhập'], 401);
+        }
+
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|string|min:6|confirmed'
+        ]);
+
+        if (!Hash::check($request->current_password, $user->mat_khau)) {
+            return redirect()->back()->with('tb_danger', 'Mật khẩu hiện tại không đúng');
+        }
+
+        $user->update(['mat_khau' => $request->new_password]);
+
+        return redirect()->back()->with('tb_success', 'Đổi mật khẩu thành công');
     }
 
     /**
@@ -24,9 +120,21 @@ class NguoiDungController extends Controller
      */
     public function orders()
     {
-        // For now, redirect to home with message since auth is not implemented
-        return redirect()->route('home')
-            ->with('tb_info', 'Chức năng đơn hàng đang được phát triển');
+        $user = Auth::user();
+        
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('tb_info', 'Vui lòng đăng nhập để xem đơn hàng');
+        }
+
+        $orders = \App\Models\DonHang::where('nguoi_dung_id', $user->id)
+            ->with(['chiTiet.sach'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        $title = 'Đơn hàng của tôi - BookStore';
+
+        return view('account.orders', compact('orders', 'title'));
     }
 
     /**
@@ -39,25 +147,21 @@ class NguoiDungController extends Controller
         $query = NguoiDung::query();
 
         // Filter by role
-        if ($request->has('vai_tro') && !empty($request->vai_tro)) {
-            if ($request->vai_tro === 'admin') {
-                $query->admin();
-            } elseif ($request->vai_tro === 'customer') {
-                $query->customer();
-            }
+        if ($request->filled('vai_tro')) {
+            $query->where('vai_tro', $request->vai_tro);
         }
 
         // Filter by verification status
-        if ($request->has('xac_minh') && !empty($request->xac_minh)) {
-            if ($request->xac_minh === 'verified') {
-                $query->verified();
-            } elseif ($request->xac_minh === 'unverified') {
+        if ($request->filled('verified')) {
+            if ($request->verified === '1') {
+                $query->whereNotNull('xac_minh_email_luc');
+            } else {
                 $query->whereNull('xac_minh_email_luc');
             }
         }
 
         // Search
-        if ($request->has('search') && !empty($request->search)) {
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('ho_ten', 'like', "%{$search}%")
@@ -66,16 +170,22 @@ class NguoiDungController extends Controller
             });
         }
 
-        $nguoiDung = $query->withCount('donHangs')
-                          ->orderBy('created_at', 'desc')
-                          ->paginate(15);
+        // Sorting
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        
+        if (in_array($sortBy, ['ho_ten', 'email', 'created_at'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        $nguoiDung = $query->paginate(15)->withQueryString();
 
         // Statistics
         $stats = [
             'total' => NguoiDung::count(),
-            'admin' => NguoiDung::admin()->count(),
-            'customer' => NguoiDung::customer()->count(),
-            'verified' => NguoiDung::verified()->count(),
+            'admins' => NguoiDung::where('vai_tro', 'quan_tri')->count(),
+            'verified' => NguoiDung::whereNotNull('xac_minh_email_luc')->count(),
+            'unverified' => NguoiDung::whereNull('xac_minh_email_luc')->count(),
         ];
 
         return view('nguoi_dung.index', compact('nguoiDung', 'title', 'stats'));

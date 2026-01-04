@@ -1,18 +1,15 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', $title ?? 'Tạo đơn hàng mới')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">{{ $title ?? 'Tạo đơn hàng mới' }}</h3>
-                    <div class="card-tools">
-                        <a href="{{ route('admin.donhang.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-1"></i>Quay lại
-                        </a>
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title" style="margin: 0; font-weight: 600;">{{ $title ?? 'Tạo đơn hàng mới' }}</h3>
+            <div>
+                <a href="{{ route('admin.donhang.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
                     </div>
                 </div>
                 

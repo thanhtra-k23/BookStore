@@ -1,25 +1,24 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', $title)
 
 @section('content')
-<div class="container mt-4 mb-5">
     <!-- Header Section -->
-    <div class="card card-modern mb-4">
+    <div class="card mb-4">
         <div class="card-header">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h4 class="mb-1 fw-bold">
-                        <i class="fas fa-book me-2"></i>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h4 style="margin: 0; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-book"></i>
                         Quản lý sách
                     </h4>
-                    <p class="mb-0 text-muted">
+                    <p style="margin: 0.25rem 0 0; color: #64748b; font-size: 0.9rem;">
                         Theo dõi và chỉnh sửa danh mục sách trong cửa hàng
                     </p>
                 </div>
-                <div class="col-md-6 text-md-end">
+                <div>
                     <a href="{{ route('admin.sach.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>
+                        <i class="fas fa-plus"></i>
                         Thêm sách mới
                     </a>
                 </div>
@@ -28,71 +27,70 @@
     </div>
 
     <!-- Filters Section -->
-    <div class="card card-modern mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('admin.sach.index') }}">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Tìm kiếm</label>
-                        <input type="text" name="search" class="form-control" 
-                               placeholder="Tên sách, tác giả..." 
-                               value="{{ request('search') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Thể loại</label>
-                        <select name="the_loai_id" class="form-select">
-                            <option value="">Tất cả</option>
-                            @foreach($theLoai as $category)
-                                <option value="{{ $category->id }}" 
-                                        {{ request('the_loai_id') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->ten_the_loai }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Tác giả</label>
-                        <select name="tac_gia_id" class="form-select">
-                            <option value="">Tất cả</option>
-                            @foreach($tacGia as $author)
-                                <option value="{{ $author->id }}" 
-                                        {{ request('tac_gia_id') == $author->id ? 'selected' : '' }}>
-                                    {{ $author->ten_tac_gia }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Trạng thái</label>
-                        <select name="trang_thai" class="form-select">
-                            <option value="">Tất cả</option>
-                            <option value="active" {{ request('trang_thai') == 'active' ? 'selected' : '' }}>
-                                Đang bán
+    <div class="filter-card">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i> Bộ lọc tìm kiếm
+        </div>
+        <form method="GET" action="{{ route('admin.sach.index') }}">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Tìm kiếm</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Tên sách, tác giả..." 
+                           value="{{ request('search') }}">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Thể loại</label>
+                    <select name="the_loai_id" class="form-select">
+                        <option value="">Tất cả</option>
+                        @foreach($theLoai as $category)
+                            <option value="{{ $category->id }}" 
+                                    {{ request('the_loai_id') == $category->id ? 'selected' : '' }}>
+                                {{ $category->ten_the_loai }}
                             </option>
-                            <option value="in_stock" {{ request('trang_thai') == 'in_stock' ? 'selected' : '' }}>
-                                Còn hàng
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Tác giả</label>
+                    <select name="tac_gia_id" class="form-select">
+                        <option value="">Tất cả</option>
+                        @foreach($tacGia as $author)
+                            <option value="{{ $author->id }}" 
+                                    {{ request('tac_gia_id') == $author->id ? 'selected' : '' }}>
+                                {{ $author->ten_tac_gia }}
                             </option>
-                            <option value="on_sale" {{ request('trang_thai') == 'on_sale' ? 'selected' : '' }}>
-                                Khuyến mãi
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search me-1"></i>
-                                Tìm kiếm
-                            </button>
-                            <a href="{{ route('admin.sach.index') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-refresh me-1"></i>
-                                Reset
-                            </a>
-                        </div>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="trang_thai" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="active" {{ request('trang_thai') == 'active' ? 'selected' : '' }}>
+                            Đang bán
+                        </option>
+                        <option value="in_stock" {{ request('trang_thai') == 'in_stock' ? 'selected' : '' }}>
+                            Còn hàng
+                        </option>
+                        <option value="on_sale" {{ request('trang_thai') == 'on_sale' ? 'selected' : '' }}>
+                            Khuyến mãi
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </button>
+                        <a href="{{ route('admin.sach.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-undo"></i> Reset
+                        </a>
                     </div>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
     <!-- Books Table -->

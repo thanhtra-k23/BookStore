@@ -10,7 +10,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
+            <ul class="navbar-nav mx-auto">
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
                         <i class="fas fa-home me-1"></i> Trang chủ
@@ -75,22 +75,24 @@
                 </div>
             </form>
 
-            <ul class="navbar-nav">
-                <!-- Cart (always visible) -->
-                <li class="nav-item">
-                    <a class="nav-link position-relative" href="{{ route('cart.index') }}">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">
+            <ul class="navbar-nav align-items-center">
+                <!-- Wishlist Button -->
+                <li class="nav-item me-2">
+                    <a class="btn btn-outline-light btn-sm position-relative d-flex align-items-center" href="{{ route('wishlist.index') }}" title="Danh sách yêu thích">
+                        <i class="fas fa-heart me-1"></i>
+                        <span class="d-none d-md-inline">Yêu thích</span>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger wishlist-count" style="font-size: 0.65rem;">
                             0
                         </span>
                     </a>
                 </li>
 
-                <!-- Wishlist (always visible) -->
-                <li class="nav-item">
-                    <a class="nav-link position-relative" href="{{ route('wishlist.index') }}">
-                        <i class="fas fa-heart"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger wishlist-count">
+                <!-- Cart Button -->
+                <li class="nav-item me-2">
+                    <a class="btn btn-warning btn-sm position-relative d-flex align-items-center cart-btn" href="{{ route('cart.index') }}" title="Giỏ hàng">
+                        <i class="fas fa-shopping-cart me-1"></i>
+                        <span class="d-none d-md-inline">Giỏ hàng</span>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count" style="font-size: 0.65rem;">
                             0
                         </span>
                     </a>
@@ -221,6 +223,55 @@
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+    
+    /* Cart Button Styling */
+    .cart-btn {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600;
+        border-radius: 25px !important;
+        padding: 0.5rem 1rem !important;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    .cart-btn:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        color: white !important;
+    }
+    
+    .cart-btn i {
+        font-size: 1rem;
+    }
+    
+    /* Wishlist Button Styling */
+    .navbar-nav .btn-outline-light {
+        border-radius: 25px !important;
+        padding: 0.5rem 1rem !important;
+        transition: all 0.3s ease;
+    }
+    
+    .navbar-nav .btn-outline-light:hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+        transform: translateY(-2px);
+    }
+    
+    .navbar-nav .btn-outline-light i.fa-heart {
+        color: #ef4444;
+    }
+    
+    /* Badge Animation */
+    .cart-count, .wishlist-count {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); }
+        50% { transform: translate(-50%, -50%) scale(1.1); }
     }
 </style>
 @endpush
